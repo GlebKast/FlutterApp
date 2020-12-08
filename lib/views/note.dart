@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/inherited_widgets/note_inherited_widget.dart';
+import 'package:flutter_app/providers/note_provider.dart';
 import 'package:flutter_app/views/note_list.dart';
 
 enum NoteMode{
@@ -11,9 +12,10 @@ class Note extends StatefulWidget {
 
   final NoteMode noteMode;
   final int index;
-  List<NoteExample> notes;
+  final List<NoteExample> notes;
+  final Map<String, dynamic> note;
 
-  Note(this.noteMode, this.index, this.notes);
+  Note(this.noteMode, this.index, this.notes, this.note);
 
   @override
   NoteState createState() {
@@ -85,17 +87,25 @@ class NoteState extends State<Note> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 _NoteAddEditButton('Save', Colors.blue, () {
-
                   final book = _bookNameController.text;
                   final author = _authorNameController.text;
                   final advisor = _whoAdvisedController.text;
                   final comment = _commentController.text;
                   if(widget?.noteMode == NoteMode.Adding){
-                    print(_notes.length);
-                    _notes.add(NoteExample(book, author, advisor, comment));
-                    print(_notes.length);
+                    NoteProvider.insertNote({
+                      'bookName': book,
+                      'authorName': author,
+                      'whoAdvised': advisor,
+                      'comment': comment
+                    });
                   } else if(widget?.noteMode == NoteMode.Editing){
-                    _notes[widget.index] = NoteExample(book, author, advisor, comment);
+                    NoteProvider.updateNote({
+                      'id': widget.note['id'],
+                      'bookName': book,
+                      'authorName': author,
+                      'whoAdvised': advisor,
+                      'comment': comment
+                    });
                   }
                   Navigator.push(
                       context,
@@ -109,8 +119,8 @@ class NoteState extends State<Note> {
                 widget.noteMode == NoteMode.Editing ?
                 Padding(
                   padding: const EdgeInsets.all(7.5),
-                  child: _NoteAddEditButton('Delete', Colors.red, () {
-                    _notes.removeAt(widget.index);
+                  child: _NoteAddEditButton('Delete', Colors.red, () async {
+                    await NoteProvider.deleteNote(widget.note['id']);
                     Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => NoteList(_notes))

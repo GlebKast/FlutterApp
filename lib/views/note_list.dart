@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/inherited_widgets/note_inherited_widget.dart';
+import 'package:flutter_app/providers/note_provider.dart';
 import 'note.dart';
 
 
 class NoteList extends StatefulWidget {
 
-  List<NoteExample> notes;
+  final List<NoteExample> notes;
 
   NoteList(this.notes);
 
@@ -38,41 +39,48 @@ class NoteListState extends State<NoteList> {
       appBar: AppBar(
         title: Text('BookAdvisor'),
       ),
-      body: Container(
-        child: ListView.builder(
-          itemBuilder: (context, index){
-            return GestureDetector(
-              onLongPress: (){
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Note(NoteMode.Editing, index, _notes))
+      body: FutureBuilder(
+        future: NoteProvider.getNoteList(),
+        builder: (context, snapshot){
+          if(snapshot.connectionState == ConnectionState.done){
+            final notes = snapshot.data;
+            return ListView.builder(
+              itemBuilder: (context, index){
+                return GestureDetector(
+                  onLongPress: (){
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Note(NoteMode.Editing, index, notes, notes[index]))
+                    );
+                  },
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 30.0, bottom: 30.0, left: 13.0, right: 22.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          _NoteBookName(notes[index].bookName),
+                          _NoteAuthorName(notes[index].authorName),
+                          _NoteWhoAdvised(notes[index].whoAdvised),
+                          Container(height: 4,),
+                          _NoteComment(notes[index].comment),
+                        ],
+                      ),
+                    ),
+                  ),
                 );
               },
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 30.0, bottom: 30.0, left: 13.0, right: 22.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      _NoteBookName(_notes[index].bookName),
-                      _NoteAuthorName(_notes[index].authorName),
-                      _NoteWhoAdvised(_notes[index].whoAdvised),
-                      Container(height: 4,),
-                      _NoteComment(_notes[index].whoAdvised),
-                    ],
-                  ),
-                ),
-              ),
+              itemCount: notes.length,
             );
-          },
-          itemCount: _notes.length,
-        ),
+          }
+          return Center(child: CircularProgressIndicator());
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Note(NoteMode.Adding, null, _notes))
+              MaterialPageRoute(builder: (context) => Note(NoteMode.Adding, null, _notes, null))
           );
         },
         child: Icon(Icons.add),
