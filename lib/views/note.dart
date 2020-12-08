@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/inherited_widgets/note_inherited_widget.dart';
+import 'package:flutter_app/views/note_list.dart';
 
 enum NoteMode{
   Editing,
@@ -10,8 +11,9 @@ class Note extends StatefulWidget {
 
   final NoteMode noteMode;
   final int index;
+  List<NoteExample> notes;
 
-  Note(this.noteMode, this.index);
+  Note(this.noteMode, this.index, this.notes);
 
   @override
   NoteState createState() {
@@ -27,15 +29,15 @@ class NoteState extends State<Note> {
   final TextEditingController _whoAdvisedController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
 
-  List<Map<String, String>> get _notes => NoteInheritedWidget.of(context).notes;
+  List<NoteExample> get _notes => widget.notes;
 
   @override
   void didChangeDependencies() {
     if (widget.noteMode == NoteMode.Editing) {
-      _bookNameController.text = _notes[widget.index]['BookName'];
-      _authorNameController.text = _notes[widget.index]['AuthorName'];
-      _whoAdvisedController.text = _notes[widget.index]['WhoAdvised'];
-      _commentController.text = _notes[widget.index]['Comment'];
+      _bookNameController.text = _notes[widget.index].bookName;
+      _authorNameController.text = _notes[widget.index].authorName;
+      _whoAdvisedController.text = _notes[widget.index].whoAdvised;
+      _commentController.text = _notes[widget.index].comment;
     }
     super.didChangeDependencies();
   }
@@ -45,7 +47,7 @@ class NoteState extends State<Note> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.noteMode == NoteMode.Adding ? 'Add recommended book' : 'Edit recommended book'
+            widget.noteMode == NoteMode.Adding ? 'Add recommended book' : 'Edit recommended book'
         ),
       ),
       body: Padding(
@@ -56,7 +58,7 @@ class NoteState extends State<Note> {
             TextField(
               controller: _bookNameController,
               decoration: InputDecoration(
-                hintText: 'Book name'
+                  hintText: 'Book name'
               ),
             ),
             TextField(
@@ -84,40 +86,38 @@ class NoteState extends State<Note> {
               children: <Widget>[
                 _NoteAddEditButton('Save', Colors.blue, () {
 
-                    final book = _bookNameController.text;
-                    final author = _authorNameController.text;
-                    final advisor = _whoAdvisedController.text;
-                    final comment = _commentController.text;
-                    if(widget?.noteMode == NoteMode.Adding){
-                      _notes.add({
-                      'BookName' : book,
-                      'AuthorName' : author,
-                      'WhoAdvised' : advisor,
-                      'Comment' : comment
-                    });
+                  final book = _bookNameController.text;
+                  final author = _authorNameController.text;
+                  final advisor = _whoAdvisedController.text;
+                  final comment = _commentController.text;
+                  if(widget?.noteMode == NoteMode.Adding){
+                    print(_notes.length);
+                    _notes.add(NoteExample(book, author, advisor, comment));
+                    print(_notes.length);
                   } else if(widget?.noteMode == NoteMode.Editing){
-                      _notes[widget.index] = {
-                        'BookName' : book,
-                        'AuthorName' : author,
-                        'WhoAdvised' : advisor,
-                        'Comment' : comment
-                      };
-                    }
-                  Navigator.pop(context);
+                    _notes[widget.index] = NoteExample(book, author, advisor, comment);
+                  }
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NoteList(_notes))
+                  );
                 }),
                 Container(height: 15.0,),
                 _NoteAddEditButton('Discard', Colors.grey, () {
                   Navigator.pop(context);
                 }),
                 widget.noteMode == NoteMode.Editing ?
-                  Padding(
+                Padding(
                   padding: const EdgeInsets.all(7.5),
                   child: _NoteAddEditButton('Delete', Colors.red, () {
                     _notes.removeAt(widget.index);
-                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => NoteList(_notes))
+                    );
                   }),
                 )
-                : Container()
+                    : Container()
               ],
             )
           ],
@@ -146,4 +146,3 @@ class _NoteAddEditButton extends StatelessWidget {
     );
   }
 }
-

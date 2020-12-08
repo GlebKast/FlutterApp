@@ -5,13 +5,12 @@ import 'package:flutter_app/views/note_list.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+  List<NoteExample> notes = List();
   @override
   Widget build(BuildContext context) {
-    return NoteInheritedWidget(
-      MaterialApp(
-        title: 'BookAdvisor',
-        home: NoteList(),
-      ),
+    return MaterialApp(
+      title: 'BookAdvisor',
+      home: NoteList(notes),
     );
   }
 }

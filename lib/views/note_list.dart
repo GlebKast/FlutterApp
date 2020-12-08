@@ -5,6 +5,10 @@ import 'note.dart';
 
 class NoteList extends StatefulWidget {
 
+  List<NoteExample> notes;
+
+  NoteList(this.notes);
+
   @override
   NoteListState createState() {
     return new NoteListState();
@@ -13,7 +17,20 @@ class NoteList extends StatefulWidget {
 
 class NoteListState extends State<NoteList> {
 
-  List<Map<String, String>> get _notes => NoteInheritedWidget.of(context).notes;
+  List<NoteExample> get _notes => widget.notes;
+
+  @override
+  void initState() {
+// TODO: implement initState
+    super.initState();
+    print(_notes.length);
+  }
+
+  @override
+  void dispose() {
+// TODO: implement dispose
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +38,14 @@ class NoteListState extends State<NoteList> {
       appBar: AppBar(
         title: Text('BookAdvisor'),
       ),
-      body: ListView.builder(
+      body: Container(
+        child: ListView.builder(
           itemBuilder: (context, index){
             return GestureDetector(
               onLongPress: (){
                 Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Note(NoteMode.Editing, index))
+                    MaterialPageRoute(builder: (context) => Note(NoteMode.Editing, index, _notes))
                 );
               },
               child: Card(
@@ -36,24 +54,25 @@ class NoteListState extends State<NoteList> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      _NoteBookName(_notes[index]['BookName']),
-                      _NoteAuthorName(_notes[index]['AuthorName']),
-                      _NoteWhoAdvised(_notes[index]['WhoAdvised']),
+                      _NoteBookName(_notes[index].bookName),
+                      _NoteAuthorName(_notes[index].authorName),
+                      _NoteWhoAdvised(_notes[index].whoAdvised),
                       Container(height: 4,),
-                      _NoteComment(_notes[index]['Comment']),
+                      _NoteComment(_notes[index].whoAdvised),
                     ],
                   ),
                 ),
               ),
             );
           },
-        itemCount: _notes.length,
+          itemCount: _notes.length,
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Note(NoteMode.Adding, null))
+              MaterialPageRoute(builder: (context) => Note(NoteMode.Adding, null, _notes))
           );
         },
         child: Icon(Icons.add),
@@ -89,7 +108,7 @@ class _NoteAuthorName extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-     _authorName,
+      _authorName,
       style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold
@@ -109,7 +128,7 @@ class _NoteWhoAdvised extends StatelessWidget {
     return Text(
       _whoAdvised,
       style: TextStyle(
-          fontSize: 20,
+        fontSize: 20,
       ),
     );
   }
@@ -134,4 +153,3 @@ class _NoteComment extends StatelessWidget {
     );
   }
 }
-
